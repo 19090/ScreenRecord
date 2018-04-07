@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/image">
+        <file>icon_cursor.png</file>
+        <file>cursor.png</file>
+        <file>pointer_blue.png</file>
+        <file>pointer_yellow.png</file>
+        <file>image/leftbottom20.png</file>
+        <file>image/lefttop20.png</file>
+        <file>image/righttop20.png</file>
+        <file>image/tightbottom20.png</file>
+    </qresource>
+</RCC>
