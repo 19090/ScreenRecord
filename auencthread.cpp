@@ -12,16 +12,20 @@ AuEncThread::AuEncThread(AuDataRingBuffer *_rawDataBuffer,PacketRingBuffer *_pac
     //sampleRate 8000 11025 22050 44100
     avAudioFormat->setSampleRate(44100);
     avAudioFormat->setChannels(1);
+//    avAudioFormat->setChannelLayout(QtAV::AudioFormat::ChannelLayout_Stereo);
     avAudioFormat->setSampleFormat(QtAV::AudioFormat::SampleFormat_Signed16);
     auEnc->setAudioFormat(*avAudioFormat);
     auEnc->setBitRate(64000);//64k
-    auEnc->setCodecName("libmp3lame");
+    auEnc->setCodecName("libmp3lame"); //libmp3lame
     auEnc->setTimestampMode(QtAV::AVEncoder::TimestampCopy);
 }
 
 void AuEncThread::start()
 {
-    auEnc->open();
+    if(auEnc->open())
+        qDebug()<<"audio enc open";
+    else
+        qDebug()<<"audio enc open false";
     QThread::start(QThread::TimeCriticalPriority);
 }
 
@@ -34,15 +38,19 @@ void AuEncThread::run()
         data.clear();
 
         rawDataBuffer->getData(data,timestamp);
-
+//        qDebug()<<"data size:"<<data.size();
         if((data == "end") || (timestamp == 0.0))
             break;
 
         QtAV::AudioFrame frame(*avAudioFormat,data);
+        if(!frame.isValid())
+            continue;
         frame.setTimestamp(timestamp);
+//        qDebug()<<frame.format();
         if(this->auEnc->encode(frame) == false){
             continue ;
         }
+//         qDebug()<<auEnc->audioFormat();
 
         QtAV::Packet packet = this->auEnc->encoded();
         if(packet.isValid())

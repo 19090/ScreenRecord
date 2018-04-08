@@ -31,6 +31,8 @@
 //#define USE_VIDEO_THREAD
 #undef USE_VIDEO_THREAD
 
+//#define USE_TWO_PACKET_BUF
+
 namespace Ui {
 class MainDlg;
 }
@@ -52,8 +54,12 @@ private:
     Ui::MainDlg *ui;
 
     AuDataRingBuffer *auRingBuffer;     //audio raw data
+#ifdef USE_TWO_PACKET_BUF
     PacketRingBuffer *AVpacketBuffer;   //video packet data
     PacketRingBuffer *AUpacketBuffer;   //audio packet data
+#else
+    PacketRingBuffer *packetBuffer;
+#endif
     TimeStamp *timestamp;               //删除
 
     AuDataCapThread *audioCapThread;
@@ -96,11 +102,23 @@ private slots:
     void slot_trayIconActivated(QSystemTrayIcon::ActivationReason);
 
     void on_rbtnEreaSelect_toggled(bool checked);
- private:
+
+    void slot_tranDlg_rect(QRect);
+    void on_spinBoxFPS_valueChanged(int arg1);
+
+    void on_checkBoxTimeRecord_clicked(bool checked);
+
+    void on_cBoxRecordVideo_clicked(bool checked);
+
+    void on_cBoxRecordAudio_clicked(bool checked);
+
+    void on_cBoxRecordCursor_clicked(bool checked);
+
+private:
     void initVideoEnc();
     int area_x,area_y,area_w,area_h;
-    int frameRate;
-    int fps;
+    int video_bitrate;
+    int video_fps;
 
 protected:
     void changeEvent(QEvent *e);
@@ -114,6 +132,14 @@ private:
     bool mouseMoveState;
 
     TranDlg *tranDlg;
+
+    int intervelSecond;
+
+    bool isRecordVideo;
+    bool isRecordAudio;
+    bool isRecordCursor;
+
+    void setupUiStart(bool);
 };
 
 #endif // MAINDLG_H

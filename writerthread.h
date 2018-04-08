@@ -15,11 +15,24 @@ class WriterThread : public QThread
 {
     Q_OBJECT
 public:
-    explicit WriterThread(PacketRingBuffer *_aupacketBuffer,PacketRingBuffer *_avpacketBuffer,QtAV::AudioEncoder *_auEnc,QtAV::VideoEncoder *_viEnc,QThread *parent = nullptr);
+
+    explicit WriterThread(PacketRingBuffer *_aupacketBuffer,
+                          PacketRingBuffer *_avpacketBuffer,
+                          QtAV::AudioEncoder *_auEnc,
+                          QtAV::VideoEncoder *_viEnc,
+                          QThread *parent = nullptr);
+    explicit WriterThread(PacketRingBuffer *_packetBuffer,
+                          QtAV::AudioEncoder *_auEnc,
+                          QtAV::VideoEncoder *_viEnc,
+                          QThread *parent = nullptr);
+
+
+
 
     bool start();
     bool stop();
-
+    void setRecordVideo(bool);
+    void setRecordAudio(bool);
     void setSaveFileName(const QString &_filename);
 signals:
 
@@ -30,9 +43,12 @@ protected:
 private:
     QtAV::AVMuxer *muxer;
     QString saveFileName;
-
+#ifdef USE_TWO_PACKET_BUF
     PacketRingBuffer *aupacketBuffer;
     PacketRingBuffer *avpacketBuffer;
+#else
+        PacketRingBuffer *packetBuffer;
+#endif
 
 #ifdef SPLIT_TO_FILE
     QString audiofile,videofile;
@@ -41,6 +57,9 @@ private:
     QtAV::AVMuxer *videoMuxer;
 
 #endif
+
+    bool isRecordAudio;
+    bool isRecordVideo;
 };
 
 #endif // WRITERTHREAD_H

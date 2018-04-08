@@ -21,7 +21,8 @@ protected:
     void mouseMoveEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
 
-
+signals:
+    void signal_rect(QRect);
 private:
     Ui::TranDlg *ui;
 
@@ -29,6 +30,7 @@ private:
     bool startMoveState;
 
     bool isTopArea;
+    bool isleftArea;
 
     QPoint leftTopPoint,rightBottomPoint;
     QRect rect;

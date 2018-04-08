@@ -23,9 +23,9 @@ AuDataCapThread::AuDataCapThread(TimeStamp *_timestamp,AuDataRingBuffer *_rawRin
 
     qtaudioinput = new QAudioInput(qtformat);
     qtaudioinput->setBufferSize(11520);
-    qtaudioinput->setVolume(0.5);
+    qtaudioinput->setVolume(1);
     qDebug()<<"##########audio sample rate :"<<qtaudioinput->format().sampleRate();
-    qDebug()<<"##########audio buffer size :"<<qtaudioinput->bufferSize();
+    qDebug()<<"##########audio volume :"<<qtaudioinput->volume();
     qtaudioinput->moveToThread(thread);
     this->moveToThread(thread);
 }
@@ -37,7 +37,7 @@ bool AuDataCapThread::start()
 
     this->qtaudiodev = qtaudioinput->start();
     this->qtaudiodev->moveToThread(thread);
-    connect(qtaudiodev,SIGNAL(readyRead()),this,SLOT(slot_pushData2Buf()));
+    connect(qtaudiodev,SIGNAL(readyRead()),this,SLOT(slot_pushData2Buf()),Qt::BlockingQueuedConnection);
     thread->start(QThread::NormalPriority);
     return true;
 }

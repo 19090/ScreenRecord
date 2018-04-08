@@ -14,9 +14,10 @@ TranDlg::TranDlg(QWidget *parent) : QDialog(parent),
     startMoveState = false;
 
     this->setAttribute(Qt::WA_TranslucentBackground,true);
-    this->setWindowFlags(Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint);
+    this->setWindowFlags(Qt::Tool|Qt::CustomizeWindowHint|Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint);
 
-    this->resize(600,400);
+    this->resize(800,600);
+
 }
 
 TranDlg::~TranDlg()
@@ -53,18 +54,24 @@ void TranDlg::mousePressEvent(QMouseEvent *event)
         gh = rect.height();
 
         if((moveBegin.x() < (gx+10)) &&(moveBegin.y()<(gy+10))){
+            this->isleftArea = true;
+            this->isTopArea = true;
             qDebug()<<"left top";
         }
         else if((moveBegin.x()>(gx+gw-10))&&(moveBegin.y()<(gy+10))){
             qDebug()<<"right top"<<rect;
-            isTopArea = true;
+            this->isleftArea = false;
+            this->isTopArea = true;
         }
         else if((moveBegin.x()>(gx+gw-10))&&(moveBegin.y()>(gy+gh-10))){
             qDebug()<<"right bottom"<<rect;
-            isTopArea = false;
+            this->isleftArea = false;
+            this->isTopArea = false;
 
         }
         else if((moveBegin.x() < (gx+10))&&(moveBegin.y()>(gy+gh-10))){
+            this->isleftArea = true;
+            this->isTopArea = false;
             qDebug()<<"left bottom";
 
         }
@@ -80,27 +87,76 @@ void TranDlg::mouseMoveEvent(QMouseEvent *event)
 
     if(startMoveState){
         moveEnd = event->globalPos();
-        if(isTopArea ){
+        if(isleftArea && isTopArea ){
+            rect.setTopLeft(moveEnd);
+            int _w = (rect.width()/8)*8;
+            int _h = (rect.height()/8)*8;
+            QPoint _point = rect.bottomRight();
+            moveEnd.setX(_point.x() - _w +1);
+            moveEnd.setY(_point.y() - _h +1);
+            rect.setTopLeft(moveEnd);
+            this->setGeometry(rect);
+//            qDebug()<<_w<<rect.width()<<_h<<rect.height();
+
+        }
+        else if(!isleftArea && isTopArea ){
             rect.setTopRight(moveEnd);
+            int _w = (rect.width()/8)*8;
+            int _h = (rect.height()/8)*8;
+            QPoint _point = rect.bottomLeft();
+            moveEnd.setX(_point.x() + _w -1);
+            moveEnd.setY(_point.y() - _h +1);
+            rect.setTopRight(moveEnd);
+
             this->setGeometry(rect);
-            qDebug()<<rect;
+//            qDebug()<<_w<<rect.width()<<_h<<rect.height();
+
         }
-        else if(!isTopArea){
+        else if(!isleftArea && !isTopArea ){
+//            rect.setBottomRight(moveEnd);
+//            if((rect.width() % 8 == 0) && (rect.height()%8 == 0)){
+//                this->setGeometry(rect);
+//                qDebug()<<rect;
+//            }
             rect.setBottomRight(moveEnd);
+            int _w = (rect.width()/8)*8;
+            int _h = (rect.height()/8)*8;
+            QPoint _point = rect.topLeft();
+            moveEnd.setX(_point.x() + _w -1);
+            moveEnd.setY(_point.y() + _h -1);
+            rect.setBottomRight(moveEnd);
+
             this->setGeometry(rect);
-            qDebug()<<rect;
+//            qDebug()<<_w<<rect.width()<<_h<<rect.height();
         }
-        else {
-            this->move(this->pos()-moveBegin+moveEnd);
-            moveBegin = moveEnd;
+        else if(isleftArea && !isTopArea ){
+//            rect.setBottomLeft(moveEnd);
+//            if((rect.width() % 8 == 0) && (rect.height()%8 == 0)){
+//                this->setGeometry(rect);
+//                qDebug()<<rect;
+//            }
+            rect.setBottomLeft(moveEnd);
+            int _w = (rect.width()/8)*8;
+            int _h = (rect.height()/8)*8;
+            QPoint _point = rect.topRight();
+            moveEnd.setX(_point.x() - _w +1);
+            moveEnd.setY(_point.y() + _h -1);
+            rect.setBottomLeft(moveEnd);
+
+            this->setGeometry(rect);
+//            qDebug()<<_w<<rect.width()<<_h<<rect.height();
         }
+        qDebug()<<rect;
     }
     event->ignore();
 }
 
 void TranDlg::mouseReleaseEvent(QMouseEvent *event)
 {
-    if(event->button() == Qt::LeftButton)
+    if(event->button() == Qt::LeftButton){
+        if(this->startMoveState)
+            emit(signal_rect(this->rect));
         this->startMoveState = false ;
+    }
     event->ignore();
 }

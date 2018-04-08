@@ -5,8 +5,60 @@ WriterThread::WriterThread(PacketRingBuffer *_aupacketBuffer,
                            PacketRingBuffer *_avpacketBuffer,
                            QtAV::AudioEncoder *_auEnc,QtAV::VideoEncoder *_viEnc,QThread *parent) : QThread(parent)
 {
+    #ifdef USE_TWO_PACKET_BUF
     this->aupacketBuffer = _aupacketBuffer;
     this->avpacketBuffer = _avpacketBuffer;
+#else
+#endif
+#ifndef SPLIT_TO_FILE
+    muxer = new QtAV::AVMuxer;
+
+    this->saveFileName = "./xx.mp4";
+    muxer->setMedia(saveFileName);
+    muxer->setFormat("mp4");
+    muxer->copyProperties(_auEnc);
+    muxer->copyProperties(_viEnc);
+
+#else
+    audiofile = "./_tmp.mp3";
+    audioMuxer = new QtAV::AVMuxer;
+    audioMuxer->setMedia(audiofile);
+    audioMuxer->setFormat("mp3");
+    audioMuxer->copyProperties(_auEnc);
+
+    videofile = "./_tmp.h264";
+    videoMuxer = new QtAV::AVMuxer;
+    videoMuxer->setMedia(videofile);
+    videoMuxer->setFormat("h264");
+    videoMuxer->copyProperties(_viEnc);
+#endif
+
+    this->isRecordAudio = true;
+    this->isRecordVideo = true;
+}
+
+void WriterThread::setRecordAudio(bool _enable)
+{
+    this->isRecordAudio = _enable;
+}
+
+void WriterThread::setRecordVideo(bool _enable)
+{
+    this->isRecordVideo = _enable;
+}
+
+WriterThread::WriterThread(PacketRingBuffer *_packetBuffer,
+                           QtAV::AudioEncoder *_auEnc,
+                           QtAV::VideoEncoder *_viEnc,
+                           QThread *parent)
+    : QThread(parent)
+{
+#ifdef USE_TWO_PACKET_BUF
+    this->aupacketBuffer = _aupacketBuffer;
+    this->avpacketBuffer = _avpacketBuffer;
+#else
+    this->packetBuffer = _packetBuffer;
+#endif
 #ifndef SPLIT_TO_FILE
     muxer = new QtAV::AVMuxer;
 
@@ -30,7 +82,6 @@ WriterThread::WriterThread(PacketRingBuffer *_aupacketBuffer,
     videoMuxer->copyProperties(_viEnc);
 #endif
 }
-
 void WriterThread::setSaveFileName(const QString &_filename)
 {
     if(_filename.isEmpty())
@@ -68,6 +119,8 @@ bool WriterThread::stop()
 
 void WriterThread::run()
 {
+#ifdef USE_TWO_PACKET_BUF
+
     QtAV::Packet aupacket,avpacket;
     int avtype,autype;
 #ifndef SPLIT_TO_FILE
@@ -94,12 +147,12 @@ void WriterThread::run()
         }
 
         if(aupacket.pts < avpacket.pts){
-            //qDebug()<<"write audio data tamp:"<<aupacket.pts;
+//            qDebug()<<"write audio data tamp:"<<aupacket.pts;
             muxer->writeAudio(aupacket);
             aupacketBuffer->getPacket(aupacket,autype,true);
         }
         else {
-            //qDebug()<<"write video data tamp:"<<avpacket.pts;
+//            qDebug()<<"write video data tamp:"<<avpacket.pts;
             muxer->writeVideo(avpacket);
             avpacketBuffer->getPacket(avpacket,avtype,true);
         }
@@ -133,6 +186,26 @@ void WriterThread::run()
             break;
         }
 
+    }
+#endif
+
+#else
+    QtAV::Packet packet;
+    int type;
+    packetBuffer->getPacket(packet,type,true);
+    while(1){
+        if(packet.isEOF()){
+            break;
+        }
+        if(type == PACKET_TYPE_AUDIO){
+            if(isRecordAudio)
+            muxer->writeAudio(packet);
+        }
+        if(type == PACKET_TYPE_VIDEO){
+            if(isRecordVideo)
+            muxer->writeVideo(packet);
+        }
+        packetBuffer->getPacket(packet,type,true);
     }
 #endif
     qDebug()<<"write thread break while(1)";
