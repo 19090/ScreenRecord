@@ -94,7 +94,8 @@ void WriterThread::setSaveFileName(const QString &_filename)
 bool WriterThread::start()
 {
 #ifndef SPLIT_TO_FILE
-    muxer->open();
+    if(muxer->open() == false)
+        return false;
 #else
     audioMuxer->open();
     videoMuxer->open();
@@ -202,6 +203,7 @@ void WriterThread::run()
             muxer->writeAudio(packet);
         }
         if(type == PACKET_TYPE_VIDEO){
+            qDebug()<<"video packet size:"<<packet.data.size();
             if(isRecordVideo)
             muxer->writeVideo(packet);
         }

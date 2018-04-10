@@ -1,5 +1,7 @@
 #include "audatacapthread.h"
 #include <QDebug>
+#include <QMessageBox>
+#include <QLabel>
 
 AuDataCapThread::AuDataCapThread(TimeStamp *_timestamp,AuDataRingBuffer *_rawRingBuffer,QObject *parent) : QObject(parent)
 {
@@ -17,6 +19,10 @@ AuDataCapThread::AuDataCapThread(TimeStamp *_timestamp,AuDataRingBuffer *_rawRin
 
     QAudioDeviceInfo info = QAudioDeviceInfo::defaultInputDevice();
     if (!info.isFormatSupported(qtformat)) {
+        QString error = info.deviceName();
+        QList<QAudioDeviceInfo> list = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
+        error = QString::number(list.count());
+        QMessageBox::warning(NULL,"error",error);
         qWarning() << "Default format not supported, trying to use the nearest.";
         qtformat = info.nearestFormat(qtformat);
     }
@@ -37,7 +43,7 @@ bool AuDataCapThread::start()
 
     this->qtaudiodev = qtaudioinput->start();
     this->qtaudiodev->moveToThread(thread);
-    connect(qtaudiodev,SIGNAL(readyRead()),this,SLOT(slot_pushData2Buf()),Qt::BlockingQueuedConnection);
+    connect(qtaudiodev,SIGNAL(readyRead()),this,SLOT(slot_pushData2Buf()));
     thread->start(QThread::NormalPriority);
     return true;
 }

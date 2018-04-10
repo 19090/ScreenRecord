@@ -133,13 +133,14 @@ void MainDlg::initVideoEnc()
     if(_fpsd5 == 0) _fpsd5 =1;
     else if(_fpsd5 > 5) _fpsd5 = 5;
 
-    if(area_w >= 1920) _bitrate = 340000;  //8500k
-    else if(area_w >= 1280) _bitrate = 140000;
-    else if(area_w >= 720) _bitrate = 72000;
-    else _bitrate = 40000;
-    video_bitrate = _bitrate * video_fps;
+//    if(area_w >= 1920) _bitrate = 340000;  //8500k
+//    else if(area_w >= 1280) _bitrate = 140000;
+//    else if(area_w >= 720) _bitrate = 72000;
+//    else _bitrate = 40000;
+//    video_bitrate = _bitrate * video_fps;
 
-    video_bitrate = area_w*area_h/192/30*video_fps*1000;
+//    video_bitrate = area_w*area_h/192/60*video_fps*1000;
+    video_bitrate = area_w*area_h*video_fps*8/46;
     ui->spinBoxbiteRate->setValue(video_bitrate);
 
     qDebug()<<"######### bit rate:" <<video_bitrate;
@@ -155,9 +156,9 @@ void MainDlg::initVideoEnc()
 //    avctx->rc_min_rate = frameRate;
 //    avctx->rc_max_rate = frameRate*8;
 //    avctx->bit_rate = frameRate;
-//    avctx->qmin = 40;
-//    avctx->qmax = 20;
-//    av_opt_set(avctx->priv_data,"vbr","30",AV_OPT_SEARCH_CHILDREN);
+//    avctx->qmin = 50;
+//    avctx->qmax = 50;
+//    av_opt_set(avctx->priv_data,"qp","30",AV_OPT_SEARCH_CHILDREN);
 
 }
 

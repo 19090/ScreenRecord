@@ -16,7 +16,7 @@ TranDlg::TranDlg(QWidget *parent) : QDialog(parent),
     this->setAttribute(Qt::WA_TranslucentBackground,true);
     this->setWindowFlags(Qt::Tool|Qt::CustomizeWindowHint|Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint);
 
-    this->resize(800,600);
+    this->resize(1024,768);
 
 }
 

@@ -591,6 +591,13 @@ QGroupBox::title {
     </layout>
    </item>
    <item>
+    <widget class="QLabel" name="labelTest">
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <spacer name="verticalSpacer_4">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
